@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Click Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="container mx-auto p-8">
+    <h1 class="text-2xl font-bold mb-4">Button Click Test</h1>
+
+    <p class="mb-4">If buttons work, you'll see alerts when you click them:</p>
+
+    <div class="space-y-4">
+        <button onclick="alert('Inline onclick works!')" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
+            Test 1: Inline onclick
+        </button>
+
+        <button id="testBtn2" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">
+            Test 2: addEventListener
+        </button>
+
+        <button onclick="testFunction()" class="bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600">
+            Test 3: Call function
+        </button>
+
+        <button onclick="addCustomerTest()" class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600">
+            Test 4: Add Customer (like main page)
+        </button>
+    </div>
+
+    <div id="customerContainer" class="mt-8"></div>
+
+    <div class="mt-8 p-4 bg-gray-100 rounded">
+        <h2 class="font-bold">Console Log:</h2>
+        <div id="console" class="text-sm"></div>
+    </div>
+
+    <script>
+        console.log('Simple test page loaded');
+
+        function log(message) {
+            console.log(message);
+            const consoleDiv = document.getElementById('console');
+            consoleDiv.innerHTML += '<div>' + message + '</div>';
+        }
+
+        log('Script is running');
+
+        function testFunction() {
+            log('testFunction called!');
+            alert('Function call works!');
+        }
+
+        function addCustomerTest() {
+            log('addCustomerTest called');
+            const container = document.getElementById('customerContainer');
+            const customerDiv = document.createElement('div');
+            customerDiv.className = 'customer mb-4 p-4 border rounded-md bg-gray-50';
+            customerDiv.innerHTML = '<p>Customer added successfully!</p>';
+            container.appendChild(customerDiv);
+            log('Customer div added to DOM');
+        }
+
+        // Test addEventListener
+        document.addEventListener('DOMContentLoaded', () => {
+            log('DOMContentLoaded fired');
+            const btn = document.getElementById('testBtn2');
+            if (btn) {
+                btn.addEventListener('click', () => {
+                    log('addEventListener click detected');
+                    alert('addEventListener works!');
+                });
+                log('addEventListener attached to button');
+            } else {
+                log('ERROR: Could not find testBtn2');
+            }
+        });
+    </script>
+</body>
+</html>

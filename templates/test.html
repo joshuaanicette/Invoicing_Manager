@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Page</title>
+</head>
+<body>
+    <h1>JavaScript Test</h1>
+    <button onclick="testClick()">Click Me</button>
+    <div id="result"></div>
+
+    <script>
+        function testClick() {
+            document.getElementById('result').innerText = 'JavaScript is working!';
+            console.log('Button clicked successfully');
+        }
+
+        console.log('Script loaded successfully');
+        console.log('Testing fetch to /health endpoint...');
+
+        fetch('/health')
+            .then(r => r.json())
+            .then(data => {
+                console.log('Health check:', data);
+                document.getElementById('result').innerText = 'API is working! ' + JSON.stringify(data);
+            })
+            .catch(e => {
+                console.error('Health check failed:', e);
+                document.getElementById('result').innerText = 'API Error: ' + e.message;
+            });
+    </script>
+</body>
+</html>

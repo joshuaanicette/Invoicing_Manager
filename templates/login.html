@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Login - Invoice Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Arial', sans-serif; background-color: #f3f4f6; }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+            max-width: 400px;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast.error { border-left: 4px solid #ef4444; }
+        .toast.success { border-left: 4px solid #10b981; }
+        .toast.info { border-left: 4px solid #3b82f6; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+        <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">Invoice Manager</h1>
+        <h2 class="text-xl font-semibold text-center mb-6 text-gray-600">Login</h2>
+
+        <form id="loginForm" class="space-y-4">
+            <div>
+                <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    required
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter your username"
+                />
+            </div>
+
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    required
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter your password"
+                />
+            </div>
+
+            <button
+                type="submit"
+                id="loginBtn"
+                class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+            >
+                Login
+            </button>
+        </form>
+
+        <p class="mt-4 text-center text-gray-600">
+            Don't have an account?
+            <a href="/register" class="text-blue-600 hover:text-blue-700 font-semibold">Register here</a>
+        </p>
+    </div>
+
+    <script>
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('loginBtn');
+
+            if (!username || !password) {
+                showToast('Please fill in all fields', 'error');
+                return;
+            }
+
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Logging in...';
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showToast('Login successful! Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1000);
+                } else {
+                    showToast(data.error || 'Login failed', 'error');
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = 'Login';
+                }
+            } catch (error) {
+                showToast('An error occurred. Please try again.', 'error');
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Login';
+            }
+        });
+    </script>
+</body>
+</html>

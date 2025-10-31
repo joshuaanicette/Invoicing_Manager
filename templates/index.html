@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Simple Invoice Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Arial', sans-serif; background-color: #f3f4f6; }
+
+        /* Loading spinner */
+        .spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+            max-width: 400px;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast.success { border-left: 4px solid #10b981; }
+        .toast.error { border-left: 4px solid #ef4444; }
+        .toast.info { border-left: 4px solid #3b82f6; }
+
+        /* Fade out animation */
+        .toast.fade-out {
+            animation: fadeOut 0.3s ease-out forwards;
+        }
+
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+        }
+
+        /* Button loading state */
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Smooth transitions */
+        .transition-all {
+            transition: all 0.2s ease-in-out;
+        }
+    </style>
+</head>
+<body class="container mx-auto p-4 max-w-7xl">
+    <div class="flex justify-between items-center mb-6 bg-white p-4 rounded-lg shadow-md">
+        <h1 class="text-3xl font-bold">Simple Invoice Manager</h1>
+        <div class="flex items-center gap-4">
+            <div id="userInfo" class="text-sm text-gray-600">
+                <span id="userName" class="font-semibold"></span>
+            </div>
+            <button id="logoutBtn" onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-all">
+                Logout
+            </button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Create/Modify Invoice Section -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold mb-4">Create or Modify Invoice</h2>
+            <form id="invoiceForm" onsubmit="return false;">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium">Invoice Number</label>
+                    <input type="number" id="invoiceNumber" name="invoiceNumber" class="mt-1 p-2 w-full border rounded-md" placeholder="Enter invoice number or leave blank for auto-generation">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium">Company Name</label>
+                    <input type="text" id="companyName" name="companyName" class="mt-1 p-2 w-full border rounded-md" placeholder="Enter company name">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium">Company Address</label>
+                    <input type="text" id="companyAddress" name="companyAddress" class="mt-1 p-2 w-full border rounded-md" placeholder="Enter company address">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium">Company Email</label>
+                    <input type="email" id="companyEmail" name="companyEmail" class="mt-1 p-2 w-full border rounded-md" placeholder="Enter company email">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium">Invoice Date</label>
+                    <input type="date" id="invoiceDate" name="invoiceDate" class="mt-1 p-2 w-full border rounded-md" required>
+                </div>
+                <div id="customers" class="mb-4">
+                    <!-- Customer fields will be dynamically added here -->
+                </div>
+                <button type="button" onclick="addCustomer()" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-all">Add Customer</button>
+                <div class="mt-4 flex flex-wrap gap-2">
+                    <button type="button" id="createBtn" onclick="createInvoice()" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-all">Create Invoice</button>
+                    <button type="button" id="loadBtn" onclick="loadInvoice()" class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 transition-all">Load Invoice</button>
+                    <button type="button" id="modifyBtn" onclick="modifyInvoice()" class="bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600 transition-all">Modify Invoice</button>
+                    <button type="button" onclick="clearForm()" class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-all">Clear Form</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Delete Invoice Section -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold mb-4">Delete Invoice</h2>
+            <form id="deleteForm" onsubmit="return false;">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium">Invoice Number</label>
+                    <input type="number" id="deleteInvoiceNumber" name="deleteInvoiceNumber" class="mt-1 p-2 w-full border rounded-md" placeholder="Enter invoice number" required>
+                </div>
+                <button type="button" id="deleteBtn" onclick="deleteInvoice()" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-all">Delete Invoice</button>
+            </form>
+        </div>
+
+        <!-- View Invoices Section -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold mb-4">View Invoices</h2>
+            <form id="viewForm" onsubmit="return false;">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium">Categorize By</label>
+                    <select id="viewPeriod" name="viewPeriod" class="mt-1 p-2 w-full border rounded-md">
+                        <option value="year">Year</option>
+                        <option value="month" selected>Month</option>
+                        <option value="day">Day</option>
+                    </select>
+                </div>
+                <button type="button" id="viewBtn" onclick="viewInvoices()" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-all">View Invoices</button>
+            </form>
+            <div id="loadingIndicator" class="mt-4 text-center hidden">
+                <div class="inline-block spinner"></div>
+                <span class="ml-2 text-gray-600">Loading invoices...</span>
+            </div>
+            <div class="mt-4 overflow-x-auto">
+                <table id="invoicesTable" class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-gray-200">
+                            <th class="p-2 border text-left">Period</th>
+                            <th class="p-2 border text-left">Invoice #</th>
+                            <th class="p-2 border text-left">Date</th>
+                            <th class="p-2 border text-left">Customers</th>
+                            <th class="p-2 border text-right">Total</th>
+                            <th class="p-2 border text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="invoicesTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Reset Invoice Number Section -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold mb-4">Reset Invoice Number</h2>
+            <p class="text-sm text-gray-600 mb-4">Check the current invoice counter status</p>
+            <button type="button" id="resetBtn" onclick="resetInvoiceNumber()" class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-all">Check Counter</button>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
